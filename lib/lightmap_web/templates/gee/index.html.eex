@@ -37,8 +37,9 @@ locationName = "KIITO"
             accessToken: 'pk.eyJ1IjoicHJvY29ubGlmZSIsImEiOiJjanM4YjI4aTAxNW4zNGFtczR1ajdrbzlvIn0.81axTvh8oPJhrFYDZhuCzA'
         }).addTo(map);
         // geeの出力を読み込む
-        L.tileLayer('https://storage.googleapis.com/testgeomap/geomap/{z}/{x}/{y}', {
-        //L.tileLayer('https://storage.googleapis.com/testgeomap/night_test/{z}/{x}/{y}', {
+        //L.tileLayer('https://storage.googleapis.com/testgeomap/geomap/{z}/{x}/{y}', {
+        L.tileLayer('https://storage.googleapis.com/testgeomap/night_201805/{z}/{x}/{y}', {
+            opacity: 0.5,
             maxZoom: 13,
             id: 'mytie'
         }).addTo(map);

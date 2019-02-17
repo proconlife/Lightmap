@@ -6,18 +6,17 @@ locationName = "KIITO"
 <%
 data = [
     %{name: "二宮温泉", longitude: 135.1958495, latitude: 34.6982648},
-    %{name: "HATなぎさの湯", longitude: 135.2132588, latitude: 34.6957018}
+    %{name: "HATなぎさの湯", longitude: 135.2132588, latitude: 34.6957018},
+    %{name: "つかさ湯", longitude: 135.180154, latitude: 34.686355},
+    %{name: "兵庫県公衆浴場業生活衛生同業組合", longitude: 135.178596, latitude: 34.688325},
+    %{name: "相生湯", longitude: 135.1755739, latitude: 34.6931657},
+    %{name: "ラドン温泉たちばな湯", longitude: 135.170616, latitude: 34.682589},
+    %{name: "割塚温泉", longitude: 135.2105256, latitude: 34.7052324},
+    %{name: "銭湯朝日湯", longitude: 135.2021821, latitude: 34.7047818},
+    %{name: "みなと湯", longitude: 135.174535, latitude: 34.67572},
+    %{name: "（有）富清観光", longitude: 135.169983, latitude: 34.680231}
 ]
 %>
-つかさ湯	135.180154,34.686355,0
-兵庫県公衆浴場業生活衛生同業組合	135.178596,34.688325,0
-相生湯	135.1755739,34.6931657,0
-ラドン温泉たちばな湯	135.170616,34.682589,0
-割塚温泉	135.2105256,34.7052324,0
-銭湯朝日湯	135.2021821,34.7047818,0
-みなと湯	135.174535,34.67572,0
-（有）富清観光	135.169983,34.680231,0
-
 
 <div id="map"></div>
 <div id="out"></div>
@@ -52,7 +51,9 @@ data = [
             accessToken: 'pk.eyJ1IjoicHJvY29ubGlmZSIsImEiOiJjanM4YjI4aTAxNW4zNGFtczR1ajdrbzlvIn0.81axTvh8oPJhrFYDZhuCzA'
         }).addTo(map);
         // geeの出力を読み込む
-        L.tileLayer('https://storage.googleapis.com/testgeomap/geomap/{z}/{x}/{y}', {
+        //L.tileLayer('https://storage.googleapis.com/testgeomap/geomap/{z}/{x}/{y}', {
+        L.tileLayer('https://storage.googleapis.com/testgeomap/night_201805/{z}/{x}/{y}', {
+            opacity: 0.5,
             maxZoom: 13,
             id: 'mytie'
         }).addTo(map);
