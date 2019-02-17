@@ -1,0 +1,98 @@
+<%
+latitude     = 34.685067
+longitude    = 135.199281
+locationName = "KIITO"
+%>
+<%
+data = [
+    %{name: "WASH＆FOLD神戸垂水店", longitude: 135.0665888, latitude: 34.6650103},
+    %{name: "大型コインランドリー マンマチャオ駒ケ林店", longitude: 135.1502363, latitude: 34.650877},
+    %{name: "大型コインランドリー マンマチャオ芦屋楠町店", longitude: 135.3130242, latitude: 34.7338114},
+    %{name: "コインランドリー", longitude: 135.197129, latitude: 34.6995022},
+    %{name: "ジュネス六甲｜コインランドリー 神戸", longitude: 135.24562, latitude: 34.719295},
+    %{name: "マンマチャオG-7モールひよどり台店", longitude: 135.1239509, latitude: 34.6889113},
+    %{name: "コインランドリーホワイトピア垂水店", longitude: 135.0510062, latitude: 34.6312214},
+    %{name: "ほっと倶楽部 白川台店", longitude: 135.1003442, latitude: 34.6891067},
+    %{name: "大型コインランドリー 洗いぐま", longitude: 135.0268425, latitude: 34.6682324},
+    %{name: "コインランドリー ホワイトピア志染店", longitude: 135.0099371, latitude: 34.7799931}
+]
+%>
+
+<div id="map"></div>
+<div id="out"></div>
+<script>
+    var output = document.getElementById("out");
+    if (!navigator.geolocation){
+        output.innerHTML = "<p>Geolocation is not supported by your browser</p>";
+    }
+    
+ 
+    function success(position) {
+        var latitude  = position.coords.latitude;
+        var longitude = position.coords.longitude;
+
+        var map = L.map('map').setView([latitude, longitude], 13);
+        // Icon
+        var icon_hospital = L.icon({
+            iconUrl: 'images/hospital.png',
+            iconSize: [65, 52],
+            iconAnchor: [22, 94],
+            popupAnchor: [-3, -76]
+            //shadowUrl: 'my-icon-shadow.png',
+            //shadowSize: [68, 95],
+            //shadowAnchor: [22, 94]
+            });
+
+        //mapboxのベースタイルを読み込む
+        L.tileLayer('https://api.tiles.mapbox.com/v4/{id}/{z}/{x}/{y}.png?access_token={accessToken}', {
+            attribution: 'Map data &copy; <a href="https://www.openstreetmap.org/">OpenStreetMap</a> contributors, <a href="https://creativecommons.org/licenses/by-sa/2.0/">CC-BY-SA</a>, Imagery © <a href="https://www.mapbox.com/">Mapbox</a>',
+            maxZoom: 18,
+            id: 'mapbox.streets',
+            accessToken: 'pk.eyJ1IjoicHJvY29ubGlmZSIsImEiOiJjanM4YjI4aTAxNW4zNGFtczR1ajdrbzlvIn0.81axTvh8oPJhrFYDZhuCzA'
+        }).addTo(map);
+        // geeの出力を読み込む
+        //L.tileLayer('https://storage.googleapis.com/testgeomap/geomap/{z}/{x}/{y}', {
+        L.tileLayer('https://storage.googleapis.com/testgeomap/night_201805/{z}/{x}/{y}', {
+            opacity: 0.5,
+            maxZoom: 13,
+            id: 'mytie'
+        }).addTo(map);
+        // 現在位置のピンを置く
+        //L.marker([latitude, longitude],{icon: icon_hospital}).addTo(map)
+        L.marker([latitude, longitude]).addTo(map)
+        .bindPopup('現在位置')
+        .openPopup();
+
+        var minDistance = 0;
+        var nLatitude = 0;
+        var nLongitude = 0;
+
+        <%= for datum <- data do %>
+        var to =  turf.point([<%= datum[:"latitude"] %>,<%= datum[:"longitude"] %>]);
+        var from = turf.point([latitude, longitude]);
+        var options = {units: 'kilometers'}; 
+        var distance = turf.distance(from, to, options);
+
+        L.marker([<%= datum[:"latitude"] %>,<%= datum[:"longitude"] %>]).addTo(map)
+        .bindPopup('<%= datum[:"name"] %><p>現在位置からの距離：'+ Math.round(distance*1000) + 'm</p>')
+
+        if (minDistance === 0 || minDistance > distance) {
+            minDistance = distance;
+            nLatitude = <%= datum[:"latitude"] %>;
+            nLongitude = <%= datum[:"longitude"] %>;
+        }
+
+        <% end %>
+        L.Routing.control({
+            waypoints: [
+                L.latLng(latitude, longitude),
+                L.latLng(nLatitude, nLongitude)
+            ]}).addTo(map);
+
+    }
+
+    function error() {
+        output.innerHTML = "Unable to retrieve your location";
+    }
+    navigator.geolocation.getCurrentPosition(success, error);
+</script>
