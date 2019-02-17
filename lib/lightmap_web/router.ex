@@ -20,6 +20,11 @@ defmodule LightmapWeb.Router do
     resources "/gee", GeeController
     resources "/rsearch", RsearchController
     resources "/sento", SentoController
+    resources "/conveni", ConveniController
+    resources "/cafe", CafeController
+    resources "/toilet", ToiletController
+    resources "/laundromat", LaundromatController
+    resources "/schelter", ShelterController
   end
 
   # Other scopes may use custom stacks.

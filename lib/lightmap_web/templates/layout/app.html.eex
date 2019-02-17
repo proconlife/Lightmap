@@ -23,11 +23,16 @@
       <section class="container">
         <nav role="navigation">
           <ul>
-            <li><a href="https://hexdocs.pm/phoenix/overview.html">Get Started</a></li>
+            <!--<li><a href="https://hexdocs.pm/phoenix/overview.html">Get Started</a></li>
             <li><%= link "HOME", to: Routes.page_path(@conn, :index) %></li>
             <li><%= link "GEE", to: Routes.gee_path(@conn, :index) %></li>
-            <li><%= link "RSeach", to: Routes.rsearch_path(@conn, :index) %></li>
-            <li><%= link "Sento", to: Routes.sento_path(@conn, :index) %></li>
+            <li><%= link "RSeach", to: Routes.rsearch_path(@conn, :index) %></li>-->
+            <li><%= link "お風呂", to: Routes.sento_path(@conn, :index) %></li>
+            <li><%= link "コンビニ", to: Routes.conveni_path(@conn, :index) %></li>
+            <li><%= link "避難所", to: Routes.shelter_path(@conn, :index) %></li>
+            <li><%= link "トイレ", to: Routes.toilet_path(@conn, :index) %></li>
+            <li><%= link "コインランドリー", to: Routes.laundromat_path(@conn, :index) %></li>
+            <li><%= link "充電できるカフェ", to: Routes.cafe_path(@conn, :index) %></li>
           </ul>
         </nav>
         <a href="http://phoenixframework.org/" class="phx-logo">
