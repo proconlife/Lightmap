@@ -1,13 +1,35 @@
+<%
+latitude     = 34.685067
+longitude    = 135.199281
+locationName = "KIITO"
+%>
+
 <div id="map"></div>
+<div id="out"></div>
 <script>
-var map = L.map('map').setView([34.6948219, 135.1951783], 18);
+    var output = document.getElementById("out");
+    if (!navigator.geolocation){
+        output.innerHTML = "<p>Geolocation is not supported by your browser</p>";
+    }
+ 
+    function success(position) {
+        var latitude  = position.coords.latitude;
+        var longitude = position.coords.longitude;
 
-L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-    attribution:'&copy;<a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>contributors'}).addTo(map);
+        var map = L.map('map').setView([34.6948219, 135.1951783], 13);
 
-L.Routing.control({
-    waypoints: [
-        L.latLng(34.6951895, 135.1943724),
-        L.latLng(34.6959734, 135.1955149)
-    ]}).addTo(map);
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution:'&copy;<a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>contributors'}).addTo(map);
+
+        L.Routing.control({
+            waypoints: [
+                L.latLng(latitude, longitude),
+                L.latLng(34.6959734, 135.1955149)
+            ]}).addTo(map);
+
+    }
+    function error() {
+    output.innerHTML = "Unable to retrieve your location";
+    }
+    navigator.geolocation.getCurrentPosition(success, error);
 </script>
