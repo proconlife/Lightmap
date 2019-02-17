@@ -5,15 +5,14 @@ locationName = "KIITO"
 %>
 <%
 data = [
-    %{name: "ファミリーマート三宮南店", longitude: 135.1991104, latitude: 34.6904042},
-    %{name: "セブン‐イレブン 神戸三宮磯上通店", longitude: 135.1992009, latitude: 34.6929836},
-    %{name: "セブン-イレブンハートインＪＲ三ノ宮駅東口店", longitude: 135.1950732, latitude: 34.694647},
-    %{name: "セブン‐イレブン 神戸栄町通３丁目店", longitude: 135.1853283, latitude: 34.6859792},
-    %{name: "セブンプレミアム", longitude: 135.1954177, latitude: 34.6921985},
-    %{name: "ファミリーマート兵庫県警察本部店", longitude: 135.1837912, latitude: 34.6900736},
-    %{name: "ファミリーマート 貿易センター駅前店", longitude: 135.1992442, latitude: 34.6890217},
-    %{name: "セブン‐イレブン 神戸中央磯辺通店", longitude: 135.1980674, latitude: 34.6898821},
-    %{name: "ローソン 神戸御幸通四丁目店", longitude: 135.2001512, latitude: 34.6936509},
+    %{name: "神戸市立こうべ小学校", longitude: 135.182493, latitude: 34.693527},
+    %{name: "神戸市立神戸生田中学校", longitude: 135.185565, latitude: 34.689911},
+    %{name: "神戸市立神港橘高等学校", longitude: 135.156964, latitude: 34.675626},
+    %{name: "神戸学院大学ポートアイランドキャンパス", longitude: 135.2038851, latitude: 34.6695309},
+    %{name: "神戸元町医療秘書専門学校", longitude: 135.1870175, latitude: 34.6905273},
+    %{name: "関西学院大学", longitude: 135.3485584, latitude: 34.7676636},
+    %{name: "兵庫県立大学 神戸商科キャンパス", longitude: 135.0521401, latitude: 34.6783119},
+    %{name: "兵庫県立大学本部", longitude: 135.0530262, latitude: 34.6788461}
 ]
 %>
 
