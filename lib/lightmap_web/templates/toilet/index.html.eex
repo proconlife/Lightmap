@@ -66,6 +66,7 @@ data = [
         var minDistance = 0;
         var nLatitude = 0;
         var nLongitude = 0;
+        var nName = "";
 
         <%= for datum <- data do %>
         var to =  turf.point([<%= datum[:"latitude"] %>,<%= datum[:"longitude"] %>]);
@@ -78,6 +79,7 @@ data = [
 
         if (minDistance === 0 || minDistance > distance) {
             minDistance = distance;
+            nName = "<%= datum[:"name"] %>"
             nLatitude = <%= datum[:"latitude"] %>;
             nLongitude = <%= datum[:"longitude"] %>;
         }
@@ -88,6 +90,9 @@ data = [
                 L.latLng(latitude, longitude),
                 L.latLng(nLatitude, nLongitude)
             ]}).addTo(map);
+
+        L.marker([nLatitude, nLongitude]).addTo(map)
+        .bindPopup(nName +'<p>現在位置からの距離：'+ minDistance + 'm</p>')
 
     }
 
