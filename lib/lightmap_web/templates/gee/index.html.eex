@@ -11,12 +11,24 @@ locationName = "KIITO"
     if (!navigator.geolocation){
         output.innerHTML = "<p>Geolocation is not supported by your browser</p>";
     }
+    
  
     function success(position) {
         var latitude  = position.coords.latitude;
         var longitude = position.coords.longitude;
 
         var map = L.map('map').setView([latitude, longitude], 13);
+        // Icon
+        var icon_hospital = L.icon({
+            iconUrl: 'images/hospital.png',
+            iconSize: [38, 95],
+            iconAnchor: [22, 94],
+            popupAnchor: [-3, -76]
+            //shadowUrl: 'my-icon-shadow.png',
+            //shadowSize: [68, 95],
+            //shadowAnchor: [22, 94]
+            });
+
         //mapboxのベースタイルを読み込む
         L.tileLayer('https://api.tiles.mapbox.com/v4/{id}/{z}/{x}/{y}.png?access_token={accessToken}', {
             attribution: 'Map data &copy; <a href="https://www.openstreetmap.org/">OpenStreetMap</a> contributors, <a href="https://creativecommons.org/licenses/by-sa/2.0/">CC-BY-SA</a>, Imagery © <a href="https://www.mapbox.com/">Mapbox</a>',
@@ -30,7 +42,7 @@ locationName = "KIITO"
             id: 'mytie'
         }).addTo(map);
         // 現在位置のピンを置く
-        L.marker([latitude, longitude]).addTo(map)
+        L.marker([latitude, longitude],{icon: icon_hospital}).addTo(map)
         .bindPopup('現在位置')
         .openPopup();
     }
