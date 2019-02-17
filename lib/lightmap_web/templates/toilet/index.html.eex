@@ -92,7 +92,7 @@ data = [
             ]}).addTo(map);
 
         L.marker([nLatitude, nLongitude]).addTo(map)
-        .bindPopup(nName +'<p>現在位置からの距離：'+ minDistance + 'm</p>')
+        .bindPopup(nName +'<p>現在位置からの距離：'+ Math.round(minDistance*1000) + 'm</p>')
 
     }
 
