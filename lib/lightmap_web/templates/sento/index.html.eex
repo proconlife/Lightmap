@@ -64,8 +64,13 @@ data = [
         .openPopup();
 
         <%= for datum <- data do %>
+        var to =  turf.point([<%= datum[:"latitude"] %>,<%= datum[:"longitude"] %>]);
+        var from = turf.point([latitude, longitude]);
+        var options = {units: 'kilometers'}; 
+        var distance = turf.distance(from, to, options);
+
         L.marker([<%= datum[:"latitude"] %>,<%= datum[:"longitude"] %>]).addTo(map)
-        .bindPopup('<%= datum[:"name"] %>')
+        .bindPopup('<%= datum[:"name"] %><p>現在位置からの距離：'+ Math.round(distance*1000) + 'm</p>')
         <% end %>
     }
 
