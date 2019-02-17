@@ -38,6 +38,7 @@ locationName = "KIITO"
         }).addTo(map);
         // geeの出力を読み込む
         L.tileLayer('https://storage.googleapis.com/testgeomap/geomap/{z}/{x}/{y}', {
+        //L.tileLayer('https://storage.googleapis.com/testgeomap/night_test/{z}/{x}/{y}', {
             maxZoom: 13,
             id: 'mytie'
         }).addTo(map);
