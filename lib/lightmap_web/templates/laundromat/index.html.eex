@@ -83,9 +83,6 @@ data = [
             nLatitude = <%= datum[:"latitude"] %>;
             nLongitude = <%= datum[:"longitude"] %>;
         }
-        
-       L.marker([nLatitude, nLongitude]).addTo(map)
-        .bindPopup(nName +'<p>現在位置からの距離：'+ Math.round(minDistance*1000) + 'm</p>')
 
         <% end %>
         L.Routing.control({
@@ -93,6 +90,9 @@ data = [
                 L.latLng(latitude, longitude),
                 L.latLng(nLatitude, nLongitude)
             ]}).addTo(map);
+
+       L.marker([nLatitude, nLongitude]).addTo(map)
+        .bindPopup(nName +'<p>現在位置からの距離：'+ Math.round(minDistance*1000) + 'm</p>')
 
     }
 
