@@ -63,6 +63,10 @@ data = [
         .bindPopup('現在位置')
         .openPopup();
 
+        var minDistance = 0;
+        var nLatitude = 0;
+        var nLongitude = 0;
+
         <%= for datum <- data do %>
         var to =  turf.point([<%= datum[:"latitude"] %>,<%= datum[:"longitude"] %>]);
         var from = turf.point([latitude, longitude]);
@@ -71,7 +75,20 @@ data = [
 
         L.marker([<%= datum[:"latitude"] %>,<%= datum[:"longitude"] %>]).addTo(map)
         .bindPopup('<%= datum[:"name"] %><p>現在位置からの距離：'+ Math.round(distance*1000) + 'm</p>')
+
+        if (minDistance === 0 || minDistance > distance) {
+            minDistance = distance;
+            nLatitude = <%= datum[:"latitude"] %>;
+            nLongitude = <%= datum[:"longitude"] %>;
+        }
+
         <% end %>
+        L.Routing.control({
+            waypoints: [
+                L.latLng(latitude, longitude),
+                L.latLng(nLatitude, nLongitude)
+            ]}).addTo(map);
+
     }
 
     function error() {
