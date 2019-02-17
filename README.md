@@ -1,3 +1,15 @@
+# Install
+phx作りたいディレクトリで
+
+* git clone https://github.com/proconlife/Lightmap.git
+* cd Lightmap
+* mix deps.get
+* mix ecto.create
+* cd assets
+* npm install
+* npm audit fix
+* iex -S mix phx.server
+
 # Lightmap
 
 To start your Phoenix server:
