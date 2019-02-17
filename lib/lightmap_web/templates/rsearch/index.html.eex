@@ -26,7 +26,6 @@ locationName = "KIITO"
                 L.latLng(latitude, longitude),
                 L.latLng(34.6959734, 135.1955149)
             ]}).addTo(map);
-
     }
     function error() {
     output.innerHTML = "Unable to retrieve your location";
