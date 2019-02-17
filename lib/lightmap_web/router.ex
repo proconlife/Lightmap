@@ -18,6 +18,7 @@ defmodule LightmapWeb.Router do
 
     get "/", PageController, :index
     resources "/gee", GeeController
+    resources "/rsearch", RsearchController
   end
 
   # Other scopes may use custom stacks.
