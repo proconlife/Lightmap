@@ -18,6 +18,21 @@ data = [
 ]
 %>
 
+<!-- ☆明るさカウントブロックデータ -->
+<%
+blocklist = [
+    %{block: "block1", 
+    minlongitude: 135.190718, minlatitude: 34.693220, 
+    maxlongitude: 135.200718, maxlatitude: 34.699220, count: 0},
+    %{block: "block2", 
+    minlongitude: 135.200718, minlatitude: 34.693220, 
+    maxlongitude: 135.210718, maxlatitude: 34.699220, count: 0},
+    %{block: "block3", 
+    minlongitude: 135.210718, minlatitude: 34.693220, 
+    maxlongitude: 135.220718, maxlatitude: 34.699220, count: 0},
+]
+%>
+
 <div id="map"></div>
 <div id="out"></div>
 <script>
@@ -28,8 +43,10 @@ data = [
     
  
     function success(position) {
-        var latitude  = position.coords.latitude;
-        var longitude = position.coords.longitude;
+        // var latitude  = position.coords.latitude;
+        // var longitude = position.coords.longitude;
+        var latitude =  <%= latitude %>;
+        var longitude = <%= longitude %>;
 
         var map = L.map('map').setView([latitude, longitude], 13);
         // Icon
@@ -68,7 +85,20 @@ data = [
         var nLongitude = 0;
         var nName = "";
 
+
+        <%= for block <- blocklist do %>
+        // ☆ブロック情報の可視化
+        L.polygon([
+            [<%= block[:minlatitude] %>, <%= block[:minlongitude] %>],
+            [<%= block[:minlatitude] %>, <%= block[:maxlongitude] %>],
+            [<%= block[:maxlatitude] %>, <%= block[:maxlongitude] %>],
+            [<%= block[:maxlatitude] %>, <%= block[:minlongitude] %>]
+        ]).addTo(map);
+
+        <% end %>
+
         <%= for datum <- data do %>
+        // 地点情報のピン
         var to =  turf.point([<%= datum[:"latitude"] %>,<%= datum[:"longitude"] %>]);
         var from = turf.point([latitude, longitude]);
         var options = {units: 'kilometers'}; 
@@ -77,19 +107,34 @@ data = [
         L.marker([<%= datum[:"latitude"] %>,<%= datum[:"longitude"] %>]).addTo(map)
         .bindPopup('<%= datum[:"name"] %><p>現在位置からの距離：'+ Math.round(distance*1000) + 'm</p>')
 
+        // ☆明るさカウント=0の場所かどうか
+        <%
+        nBlock = blocklist|>Enum.count(
+            fn(blockm) 
+            -> blockm[:minlatitude] <= datum[:latitude] and blockm[:maxlatitude] >= datum[:latitude] and
+            blockm[:minlongitude] <= datum[:longitude] and blockm[:maxlongitude] >= datum[:longitude] and
+            blockm[:count] === 0 end)
+        %>
+
         if (minDistance === 0 || minDistance > distance) {
-            minDistance = distance;
-            nName = "<%= datum[:"name"] %>"
-            nLatitude = <%= datum[:"latitude"] %>;
-            nLongitude = <%= datum[:"longitude"] %>;
+            // ☆明るさカウント=0の場合は保持しない
+            if (<%= nBlock %> === 0){
+                // 最短目的地を保持
+                minDistance = distance;
+                nName = "<%= datum[:"name"] %>"
+                nLatitude = <%= datum[:"latitude"] %>;
+                nLongitude = <%= datum[:"longitude"] %>;
+            }
         }
 
         <% end %>
-        L.Routing.control({
+        var control = L.Routing.control({
             waypoints: [
                 L.latLng(latitude, longitude),
+                L.latLng(34.695638, 135.195219),    // ☆経由地を追加
                 L.latLng(nLatitude, nLongitude)
             ]}).addTo(map);
+        // L.Routing.errorControl(control).addTo(map);
             
         L.marker([nLatitude, nLongitude]).addTo(map)
         .bindPopup(nName +'<p>現在位置からの距離：'+ Math.round(minDistance*1000) + 'm</p>')
