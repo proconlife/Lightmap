@@ -25,6 +25,7 @@ defmodule LightmapWeb.Router do
     resources "/toilet", ToiletController
     resources "/laundromat", LaundromatController
     resources "/schelter", ShelterController
+    resources "/dijkstra", DijkstraController
   end
 
   # Other scopes may use custom stacks.
