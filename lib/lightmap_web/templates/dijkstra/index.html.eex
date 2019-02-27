@@ -38,9 +38,17 @@ data = [
 ]
 
 # 明るさカウントブロックデータ
-label     = [:minlongitude, :minlatitude, :maxlongitude, :maxlatitude, :count]
+label     = [:longitude, :latitude, :minlongitude, :minlatitude, :maxlongitude, :maxlatitude, :count]
 blocklist = Enum.map(light_data, fn(i)->
-    Enum.zip(label,[Enum.at(i,0) - rlon, Enum.at(i,1) - rlat, Enum.at(i,0) + rlon, Enum.at(i,1) + rlat, Enum.at(i,2)])
+    Enum.zip(label,[
+        Enum.at(i,0),
+        Enum.at(i,1),
+        Enum.at(i,0) - rlon,
+        Enum.at(i,1) - rlat,
+        Enum.at(i,0) + rlon,
+        Enum.at(i,1) + rlat,
+        Enum.at(i,2)
+    ])
 end)
 %>
 
@@ -61,16 +69,6 @@ end)
         var longitude = <%= longitude %>;
 
         var map = L.map('map').setView([latitude, longitude], 13);
-        // Icon
-        var icon_hospital = L.icon({
-            iconUrl: 'images/hospital.png',
-            iconSize: [65, 52],
-            iconAnchor: [22, 94],
-            popupAnchor: [-3, -76]
-            //shadowUrl: 'my-icon-shadow.png',
-            //shadowSize: [68, 95],
-            //shadowAnchor: [22, 94]
-            });
 
         //mapboxのベースタイルを読み込む
         L.tileLayer('https://api.tiles.mapbox.com/v4/{id}/{z}/{x}/{y}.png?access_token={accessToken}', {
@@ -80,7 +78,6 @@ end)
             accessToken: 'pk.eyJ1IjoicHJvY29ubGlmZSIsImEiOiJjanM4YjI4aTAxNW4zNGFtczR1ajdrbzlvIn0.81axTvh8oPJhrFYDZhuCzA'
         }).addTo(map);
         // geeの出力を読み込む
-        //L.tileLayer('https://storage.googleapis.com/testgeomap/geomap/{z}/{x}/{y}', {
         L.tileLayer('https://storage.googleapis.com/testgeomap/night_201805/{z}/{x}/{y}', {
             opacity: 0.5,
             maxZoom: 13,
@@ -92,21 +89,16 @@ end)
         .bindPopup('現在位置')
         .openPopup();
 
-        var minDistance = 0;
-        var nLatitude = 0;
-        var nLongitude = 0;
-        var nName = "";
-
-
-        <%= for block <- blocklist do %>
         // ☆ブロック情報の可視化
+        <%= for block_ <- Enum.with_index(blocklist, 1) do %>
+        <% block = elem(block_,0)%>
         L.polygon([
             [<%= block[:minlatitude] %>, <%= block[:minlongitude] %>],
             [<%= block[:minlatitude] %>, <%= block[:maxlongitude] %>],
             [<%= block[:maxlatitude] %>, <%= block[:maxlongitude] %>],
             [<%= block[:maxlatitude] %>, <%= block[:minlongitude] %>]
         ]).addTo(map);
-
+        //L.marker([<%= block[:latitude] %>, <%= block[:longitude] %>]).addTo(map).bindPopup('<%= elem(block_,1)%><p><%= block[:count] %></p>')
         <% end %>
 
         <%= for datum <- data do %>
@@ -116,175 +108,166 @@ end)
         var options = {units: 'kilometers'}; 
         var distance = turf.distance(from, to, options);
 
-        L.marker([<%= datum[:"latitude"] %>,<%= datum[:"longitude"] %>]).addTo(map)
-        .bindPopup('<%= datum[:"name"] %><p>現在位置からの距離：'+ Math.round(distance*1000) + 'm</p>')
+        //L.marker([<%= datum[:"latitude"] %>,<%= datum[:"longitude"] %>]).addTo(map)
+        //.bindPopup('<%= datum[:"name"] %><p>現在位置からの距離：'+ Math.round(distance*1000) + 'm</p>')
+        <% end %>
 
-        // ☆明るさカウント=0の場所かどうか
-        <%
-        nBlock = blocklist|>Enum.count(
-            fn(blockm) 
-            -> blockm[:minlatitude] <= datum[:latitude] and blockm[:maxlatitude] >= datum[:latitude] and
-            blockm[:minlongitude] <= datum[:longitude] and blockm[:maxlongitude] >= datum[:longitude] and
-            blockm[:count] === 0 end)
-        %>
-
-        if (minDistance === 0 || minDistance > distance) {
-            // ☆明るさカウント=0の場合は保持しない
-            if (<%= nBlock %> === 0){
-                // 最短目的地を保持
-                minDistance = distance;
-                nName = "<%= datum[:"name"] %>"
-                nLatitude = <%= datum[:"latitude"] %>;
-                nLongitude = <%= datum[:"longitude"] %>;
-            }
+        // Dijkstra
+        function Node(id, light, latitude, longitude) {
+            this.edgesTo      = [];
+            this.edgesCost    = [];
+            this.facility     = [];
+            this.done         = false;
+            this.cost         = -1;
+            this.light        = light;
+            this.id           = id;
+            this.latitude     = latitude;
+            this.longitude    = longitude;
+            this.previousNode = null;
+        }
+        Node.prototype.addNode = function (node, cost) {
+            this.edgesTo.push(node);
+            this.edgesCost.push(cost);
+        };
+        Node.prototype.addFacility = function (name) {
+            this.facility.push(name);
         }
 
-        <% end %>
-        var control = L.Routing.control({
-            router: L.Routing.mapbox('pk.eyJ1IjoicHJvY29ubGlmZSIsImEiOiJjanM4YjI4aTAxNW4zNGFtczR1ajdrbzlvIn0.81axTvh8oPJhrFYDZhuCzA'),
-            waypoints: [
-                L.latLng(latitude, longitude),
-                L.latLng(34.695638, 135.195219),    // ☆経由地を追加
-                L.latLng(nLatitude, nLongitude)
-            ]}).addTo(map);
-        // L.Routing.errorControl(control).addTo(map);
-            
-        L.marker([nLatitude, nLongitude]).addTo(map)
-        .bindPopup(nName +'<p>現在位置からの距離：'+ Math.round(minDistance*1000) + 'm</p>')
+        function createNodes() {
+            <%
+            lower_edge_index = Enum.map(1..num_of_lon_area, fn x -> x end)
+            left_edge_index  = Enum.map(1..num_of_lat_area, fn x -> x * num_of_lon_area end)
+            right_edge_index = Enum.map(1..num_of_lat_area, fn x -> x * num_of_lon_area - 1 end)
+            upper_edge_index = Enum.map(1..num_of_lon_area, fn x -> x + (num_of_lat_area - 1) * num_of_lon_area end)
+            edge_index       = lower_edge_index ++ left_edge_index ++ right_edge_index ++ upper_edge_index
+            %>
+
+            <%= for block <- Enum.with_index(blocklist, 1) do %>
+            var node<%= elem(block,1) %> = new Node(<%= elem(block,1)%>, <%= elem(block,0)[:count]%>, <%= elem(block,0)[:latitude]%>, <%= elem(block,0)[:longitude]%>);
+            <% end %>
+
+            <%= for block <- Enum.with_index(blocklist, 1) do %>
+            <%= unless Enum.member?(edge_index, elem(block,1)) do %>
+            if ( <%= elem(block,0)[:longitude] %> <= longitude ) {
+                node<%= elem(block,1)+1 %>.addNode(node<%= elem(block,1) %>, 255 / node<%= elem(block,1) %>.light)
+            }
+            if ( <%= elem(block,0)[:longitude] %> >= longitude ) {
+                node<%= elem(block,1)-1 %>.addNode(node<%= elem(block,1) %>, 255 / node<%= elem(block,1) %>.light)
+            }
+            if ( <%= elem(block,0)[:latitude] %> >= latitude ) {
+                node<%= elem(block,1)+num_of_lon_area %>.addNode(node<%= elem(block,1) %>, 255 / node<%= elem(block,1) %>.light)
+            }
+            if ( <%= elem(block,0)[:latitude] %> <= latitude ) {
+                node<%= elem(block,1)-num_of_lon_area %>.addNode(node<%= elem(block,1) %>, 255 / node<%= elem(block,1) %>.light)
+            }
+            <% end %>
+            <% end %>
+
+            return [
+                <%= for area_index <- Enum.map(1..num_of_lat_area*num_of_lon_area-1, fn x -> x end) do %>
+                node<%= area_index %>,
+                <% end %>
+                node<%= num_of_lat_area*num_of_lon_area %>
+            ];
+        }
+
+        function main() {
+            var nodes = createNodes();
+            // start node is first node
+
+            nodes[1218].cost = 0;
+
+            while (true) {
+                var processNode = null;
+
+                for (var i = 0; i < nodes.length; i++) {
+                    var node = nodes[i];
+
+                    // 訪問済み or まだコストが未設定
+                    if (node.done || node.cost < 0) {
+                        continue;
+                    }
+
+                    if (!processNode) {
+                        processNode = node;
+                        continue;
+                    }
+
+                    // 一番小さいコストのノードを探す
+                    if (node.cost < processNode.cost) {
+                        processNode = node;
+                    }
+                }
+
+                if (!processNode) {
+                    break;
+                }
+
+                processNode.done = true;
+
+                for (var i = 0; i < processNode.edgesTo.length; i++) {
+                    var node = processNode.edgesTo[i];
+                    var cost = processNode.cost + processNode.edgesCost[i];
+
+                    // コストが未設定 or コストの少ない経路がある場合はアップデート
+                    var needsUpdate = (node.cost < 0) || (node.cost > cost);
+                    if (needsUpdate) {
+                        node.cost = cost;
+                        node.previousNode = processNode;
+                    }
+                }
+            }
+
+            console.log('Has been done to search path.');
+            console.log(nodes);
+
+            var goalNode = nodes[1257];
+            console.log('Shoten cost is ' + goalNode.cost);
+
+            console.log('Shoten path');
+
+            console.log('=====================');
+            var path = 'Goal -> ';
+            var currentNode = goalNode;
+            var waypoint    = [];
+            while(true) {
+                var nextNode = currentNode.previousNode;
+                if (!nextNode) {
+                    path += ' Start';
+                    break;
+                }
+                
+                path += nextNode.id + ' -> ';
+                currentNode = nextNode;
+            }
+
+            console.log(path);
+            console.log('=====================');
+
+            L.Routing.control({
+                    router: L.Routing.mapbox('pk.eyJ1IjoicHJvY29ubGlmZSIsImEiOiJjanM4YjI4aTAxNW4zNGFtczR1ajdrbzlvIn0.81axTvh8oPJhrFYDZhuCzA'),
+                    waypoints: [
+                        L.latLng(latitude, longitude),
+                        //L.latLng(34.695638, 135.195219)//,    // ☆経由地を追加
+                        //L.latLng(nLatitude, nLongitude)
+                        //L.latLng(<%= Enum.at(Enum.at(light_data,1218),1)%>, <%= Enum.at(Enum.at(light_data,1218),0)%>),
+                        //L.latLng(<%= Enum.at(Enum.at(light_data,1217),1)%>, <%= Enum.at(Enum.at(light_data,1217),0)%>),
+                        //L.latLng(<%= Enum.at(Enum.at(light_data,1216),1)%>, <%= Enum.at(Enum.at(light_data,1216),0)%>),
+                        //L.latLng(<%= Enum.at(Enum.at(light_data,1215),1)%>, <%= Enum.at(Enum.at(light_data,1215),0)%>),
+                        //L.latLng(<%= Enum.at(Enum.at(light_data,1214),1)%>, <%= Enum.at(Enum.at(light_data,1214),0)%>),
+                        //L.latLng(<%= Enum.at(Enum.at(light_data,1213),1)%>, <%= Enum.at(Enum.at(light_data,1213),0)%>),
+                        //L.latLng(<%= Enum.at(Enum.at(light_data,1259),1)%>, <%= Enum.at(Enum.at(light_data,1259),0)%>),
+                        //L.latLng(<%= Enum.at(Enum.at(light_data,1258),1)%>, <%= Enum.at(Enum.at(light_data,1258),0)%>),
+                        L.latLng(<%= Enum.at(Enum.at(light_data,1257),1)%>, <%= Enum.at(Enum.at(light_data,1257),0)%>) 
+                    ]}).addTo(map);
+        }
+
+        // Start this program.
+        main();
     }
 
     function error() {
         output.innerHTML = "Unable to retrieve your location";
     }
     navigator.geolocation.getCurrentPosition(success, error);
-
-
-    // 
-
-    function Node(id) {
-        this.edgesTo      = [];
-        this.edgesCost    = [];
-        this.done         = false;
-        this.cost         = -1;
-        this.id           = id;
-        this.previousNode = null;
-    }
-    Node.prototype.addNode = function (node, cost) {
-        this.edgesTo.push(node);
-        this.edgesCost.push(cost);
-    };
-
-    function createNodes() {
-        var node1 = new Node(1); // start
-        var node2 = new Node(2); // top
-        var node3 = new Node(3); // center
-        var node4 = new Node(4); // bottom-left
-        var node5 = new Node(5); // bottom-right
-        var node6 = new Node(6); // goal
-
-        node1.addNode(node2, 5);
-        node1.addNode(node3, 4);
-        node1.addNode(node4, 2);
-
-        node2.addNode(node1, 5);
-        node2.addNode(node6, 6);
-        node2.addNode(node3, 2);
-
-        node3.addNode(node2, 2);
-        node3.addNode(node1, 4);
-        node3.addNode(node4, 3);
-        node3.addNode(node5, 2);
-
-        node4.addNode(node1, 2);
-        node4.addNode(node3, 3);
-        node4.addNode(node5, 6);
-
-        node5.addNode(node4, 6);
-        node5.addNode(node3, 2);
-        node5.addNode(node6, 4);
-
-        node6.addNode(node2, 6);
-        node6.addNode(node5, 4);
-
-        return [
-            node1, node2, node3, node4, node5, node6
-        ];
-    }
-
-
-    function main() {
-
-        var nodes = createNodes();
-
-        // start node is first node
-        nodes[0].cost = 0;
-
-        while (true) {
-            var processNode = null;
-
-            for (var i = 0; i < nodes.length; i++) {
-                var node = nodes[i];
-
-                // 訪問済み or まだコストが未設定
-                if (node.done || node.cost < 0) {
-                    continue;
-                }
-
-                if (!processNode) {
-                    processNode = node;
-                    continue;
-                }
-
-                // 一番小さいコストのノードを探す
-                if (node.cost < processNode.cost) {
-                    processNode = node;
-                }
-            }
-
-            if (!processNode) {
-                break;
-            }
-
-            processNode.done = true;
-
-            for (var i = 0; i < processNode.edgesTo.length; i++) {
-                var node = processNode.edgesTo[i];
-                var cost = processNode.cost + processNode.edgesCost[i];
-
-                // コストが未設定 or コストの少ない経路がある場合はアップデート
-                var needsUpdate = (node.cost < 0) || (node.cost > cost);
-                if (needsUpdate) {
-                    node.cost = cost;
-                    node.previousNode = processNode;
-                }
-            }
-        }
-
-        console.log('Has been done to search path.');
-        console.log(nodes);
-
-        var goalNode = nodes[5];
-        console.log('Shoten cost is ' + goalNode.cost);
-
-        console.log('Shoten path');
-
-        console.log('=====================');
-        var path = 'Goal -> ';
-        var currentNode = goalNode;
-        while(true) {
-            var nextNode = currentNode.previousNode;
-            if (!nextNode) {
-                path += ' Start';
-                break;
-            }
-            path += nextNode.id + ' -> ';
-            currentNode = nextNode;
-        }
-
-        console.log(path);
-        console.log('=====================');
-    }
-
-    // Start this program.
-    main();
 </script>
