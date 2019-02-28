@@ -246,18 +246,19 @@ end)
 
             L.Routing.control({
                     router: L.Routing.mapbox('pk.eyJ1IjoicHJvY29ubGlmZSIsImEiOiJjanM4YjI4aTAxNW4zNGFtczR1ajdrbzlvIn0.81axTvh8oPJhrFYDZhuCzA'),
+                    //serviceUrl: 'https://api.mapbox.com/directions/v5/mapbox/walking?access_token=pk.eyJ1IjoicHJvY29ubGlmZSIsImEiOiJjanM4YjI4aTAxNW4zNGFtczR1ajdrbzlvIn0.81axTvh8oPJhrFYDZhuCzA',
                     waypoints: [
                         L.latLng(latitude, longitude),
                         //L.latLng(34.695638, 135.195219)//,    // ☆経由地を追加
                         //L.latLng(nLatitude, nLongitude)
-                        //L.latLng(<%= Enum.at(Enum.at(light_data,1218),1)%>, <%= Enum.at(Enum.at(light_data,1218),0)%>),
-                        //L.latLng(<%= Enum.at(Enum.at(light_data,1217),1)%>, <%= Enum.at(Enum.at(light_data,1217),0)%>),
-                        //L.latLng(<%= Enum.at(Enum.at(light_data,1216),1)%>, <%= Enum.at(Enum.at(light_data,1216),0)%>),
-                        //L.latLng(<%= Enum.at(Enum.at(light_data,1215),1)%>, <%= Enum.at(Enum.at(light_data,1215),0)%>),
-                        //L.latLng(<%= Enum.at(Enum.at(light_data,1214),1)%>, <%= Enum.at(Enum.at(light_data,1214),0)%>),
-                        //L.latLng(<%= Enum.at(Enum.at(light_data,1213),1)%>, <%= Enum.at(Enum.at(light_data,1213),0)%>),
-                        //L.latLng(<%= Enum.at(Enum.at(light_data,1259),1)%>, <%= Enum.at(Enum.at(light_data,1259),0)%>),
-                        //L.latLng(<%= Enum.at(Enum.at(light_data,1258),1)%>, <%= Enum.at(Enum.at(light_data,1258),0)%>),
+                        L.latLng(<%= Enum.at(Enum.at(light_data,1218),1)%>, <%= Enum.at(Enum.at(light_data,1218),0)%>),
+                        L.latLng(<%= Enum.at(Enum.at(light_data,1217),1)%>, <%= Enum.at(Enum.at(light_data,1217),0)%>),
+                        L.latLng(<%= Enum.at(Enum.at(light_data,1216),1)%>, <%= Enum.at(Enum.at(light_data,1216),0)%>),
+                        L.latLng(<%= Enum.at(Enum.at(light_data,1215),1)%>, <%= Enum.at(Enum.at(light_data,1215),0)%>),
+                        L.latLng(<%= Enum.at(Enum.at(light_data,1214),1)%>, <%= Enum.at(Enum.at(light_data,1214),0)%>),
+                        L.latLng(<%= Enum.at(Enum.at(light_data,1213),1)%>, <%= Enum.at(Enum.at(light_data,1213),0)%>),
+                        L.latLng(<%= Enum.at(Enum.at(light_data,1259),1)%>, <%= Enum.at(Enum.at(light_data,1259),0)%>),
+                        L.latLng(<%= Enum.at(Enum.at(light_data,1258),1)%>, <%= Enum.at(Enum.at(light_data,1258),0)%>),
                         L.latLng(<%= Enum.at(Enum.at(light_data,1257),1)%>, <%= Enum.at(Enum.at(light_data,1257),0)%>) 
                     ]}).addTo(map);
         }
