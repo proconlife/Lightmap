@@ -1,3 +1,4 @@
+<!--
 <%
 latitude     = 34.685067
 longitude    = 135.199281
@@ -17,6 +18,26 @@ data = [
     %{name: "コインランドリー ホワイトピア志染店", longitude: 135.0099371, latitude: 34.7799931}
 ]
 %>
+ -->
+<%
+latitude     = 35.6646695
+longitude    = 139.7378019
+locationName = "住友不動産六本木グランドタワー"
+%>
+<%
+data = [
+   %{name: "フレディ レック・ウォッシュサロン トーキョー", longitude: 139.6955034, latitude: 35.6288529},
+   %{name: "ECO WASH CAFE三鷹上連雀店", longitude: 139.5565843, latitude: 35.6937342},
+   %{name: "ECO WASH CAFE 府中白糸台店", longitude: 139.5184846, latitude: 35.66727},
+   %{name: "コインランドリーwash⁺(ウォッシュプラス) 中葛西店", longitude: 139.8664917, latitude: 35.6683252},
+   %{name: "コインランドリーwash⁺(ウォッシュプラス) 南葛西店", longitude: 139.8728302, latitude: 35.6546334},
+   %{name: "コインランドリーwash⁺(ウォッシュプラス) 富士見店", longitude: 139.892668, latitude: 35.648289},
+   %{name: "コインランドリーウォッシュマン練馬富士見台店", longitude: 139.6241906, latitude: 35.7363192},
+   %{name: "COOJU LAUNDRY （クージュランドリー）", longitude: 139.7049483, latitude: 35.5326412},
+   %{name: "コインランドリー/ピエロ湯島店", longitude: 139.7668908, latitude: 35.7042258},
+   %{name: "ジャンボランドリーふわふわ 練馬谷原店", longitude: 139.6076102, latitude: 35.7520842}
+]
+%>
 
 <div id="map"></div>
 <div id="out"></div>
@@ -28,8 +49,10 @@ data = [
     
  
     function success(position) {
-        var latitude  = position.coords.latitude;
-        var longitude = position.coords.longitude;
+        // var latitude  = position.coords.latitude;
+        // var longitude = position.coords.longitude;
+        var latitude =  <%= latitude %>;
+        var longitude = <%= longitude %>;
 
         var map = L.map('map').setView([latitude, longitude], 13);
         // Icon
@@ -52,14 +75,16 @@ data = [
         }).addTo(map);
         // geeの出力を読み込む
         //L.tileLayer('https://storage.googleapis.com/testgeomap/geomap/{z}/{x}/{y}', {
-        L.tileLayer('https://storage.googleapis.com/testgeomap/night_201805/{z}/{x}/{y}', {
-            opacity: 0.5,
-            maxZoom: 13,
+        //L.tileLayer('https://storage.googleapis.com/testgeomap/night_201805/{z}/{x}/{y}', {
+        L.tileLayer('https://storage.googleapis.com/testgeomap/tokyo_night_201805_opacity06_max100/{z}/{x}/{y}', {
+            opacity: 0.6,
+            maxZoom: 18,
             id: 'mytie'
         }).addTo(map);
         // 現在位置のピンを置く
         //L.marker([latitude, longitude],{icon: icon_hospital}).addTo(map)
-        L.marker([latitude, longitude]).addTo(map)
+        L.circleMarker([latitude, longitude],
+        {radius: 10,color: 'red',fillColor: 'red',opacity: 1,fillOpacity: 0.7}).addTo(map)
         .bindPopup('現在位置')
         .openPopup();
 
@@ -68,13 +93,21 @@ data = [
         var nLongitude = 0;
         var nName = "";
 
+        var icoOptions = {
+            prefix: 'fa'
+            ,icon: 'tshirt'
+            ,markerColor: 'red'
+            ,iconColor: 'white'
+        };
+
         <%= for datum <- data do %>
         var to =  turf.point([<%= datum[:"latitude"] %>,<%= datum[:"longitude"] %>]);
         var from = turf.point([latitude, longitude]);
         var options = {units: 'kilometers'}; 
         var distance = turf.distance(from, to, options);
 
-        L.marker([<%= datum[:"latitude"] %>,<%= datum[:"longitude"] %>]).addTo(map)
+        L.marker([<%= datum[:"latitude"] %>,<%= datum[:"longitude"] %>]
+            , {icon: L.AwesomeMarkers.icon(icoOptions)}).addTo(map)
         .bindPopup('<%= datum[:"name"] %><p>現在位置からの距離：'+ Math.round(distance*1000) + 'm</p>')
 
         if (minDistance === 0 || minDistance > distance) {
@@ -86,12 +119,14 @@ data = [
 
         <% end %>
         L.Routing.control({
+            router: L.Routing.mapbox('pk.eyJ1IjoicmlrbzAwMDAiLCJhIjoiY2pzaW1ra3U4MTN5NTN5dDdxYmpxeTQ2eSJ9.lX6Rl9HhZGeIXGFdOzonsA'),
             waypoints: [
                 L.latLng(latitude, longitude),
                 L.latLng(nLatitude, nLongitude)
             ]}).addTo(map);
 
-       L.marker([nLatitude, nLongitude]).addTo(map)
+        L.marker([nLatitude, nLongitude]
+        , {icon: L.AwesomeMarkers.icon(icoOptions)}).addTo(map)
         .bindPopup(nName +'<p>現在位置からの距離：'+ Math.round(minDistance*1000) + 'm</p>')
 
     }

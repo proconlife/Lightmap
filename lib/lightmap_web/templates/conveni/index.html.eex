@@ -1,3 +1,4 @@
+<!--
 <%
 latitude     = 34.685067
 longitude    = 135.199281
@@ -16,6 +17,26 @@ data = [
     %{name: "ローソン 神戸御幸通四丁目店", longitude: 135.2001512, latitude: 34.6936509},
 ]
 %>
+-->
+<%
+latitude     = 35.6646695
+longitude    = 139.7378019
+locationName = "住友不動産六本木グランドタワー"
+%>
+<%
+data = [
+   %{name: "セブン-イレブン六本木３丁目店", longitude: 139.7357776, latitude: 35.664747},
+   %{name: "ファミリーマート六本木駅前店", longitude: 139.7329304, latitude: 35.6632724},
+   %{name: "ファミリーマート東京ミッドタウン店", longitude: 139.7312617, latitude: 35.6662359},
+   %{name: "セブン-イレブン 東京ミッドタウン店", longitude: 139.7312017, latitude: 35.6655638},
+   %{name: "ナチュラルローソン アークヒルズフロントタワー店", longitude: 139.7396005, latitude: 35.6681388},
+   %{name: "ファミリーマート 六本木三丁目店", longitude: 139.7375161, latitude: 35.6634973},
+   %{name: "ファミリーマート六本木東店", longitude: 139.7349322, latitude: 35.6623378},
+   %{name: "ファミリーマート アークヒルズ前店", longitude: 139.7387351, latitude: 35.667271},
+   %{name: "セブン-イレブンテレビ東京本社店", longitude: 139.7377884, latitude: 35.6645131},
+   %{name: "ファミマ!! 東京国際フォーラム店", longitude: 139.763489, latitude: 35.676091}
+]
+%>
 
 <div id="map"></div>
 <div id="out"></div>
@@ -27,8 +48,10 @@ data = [
     
  
     function success(position) {
-        var latitude  = position.coords.latitude;
-        var longitude = position.coords.longitude;
+        // var latitude  = position.coords.latitude;
+        // var longitude = position.coords.longitude;
+        var latitude =  <%= latitude %>;
+        var longitude = <%= longitude %>;
 
         var map = L.map('map').setView([latitude, longitude], 13);
         // Icon
@@ -51,14 +74,16 @@ data = [
         }).addTo(map);
         // geeの出力を読み込む
         //L.tileLayer('https://storage.googleapis.com/testgeomap/geomap/{z}/{x}/{y}', {
-        L.tileLayer('https://storage.googleapis.com/testgeomap/night_201805/{z}/{x}/{y}', {
-            opacity: 0.5,
+        //L.tileLayer('https://storage.googleapis.com/testgeomap/night_201805/{z}/{x}/{y}', {
+        L.tileLayer('https://storage.googleapis.com/testgeomap/tokyo_night_201805_opacity06_max100/{z}/{x}/{y}', {
+            opacity: 0.6,
             maxZoom: 18,
             id: 'mytie'
         }).addTo(map);
         // 現在位置のピンを置く
         //L.marker([latitude, longitude],{icon: icon_hospital}).addTo(map)
-        L.marker([latitude, longitude]).addTo(map)
+        L.circleMarker([latitude, longitude],
+        {radius: 10,color: 'red',fillColor: 'red',opacity: 1,fillOpacity: 0.7}).addTo(map)
         .bindPopup('現在位置')
         .openPopup();
 
@@ -67,13 +92,21 @@ data = [
         var nLongitude = 0;
         var nName = "";
 
+        var icoOptions = {
+            prefix: 'fa'
+            ,icon: 'store-alt'
+            ,markerColor: 'red'
+            ,iconColor: 'white'
+        };
+
         <%= for datum <- data do %>
         var to =  turf.point([<%= datum[:"latitude"] %>,<%= datum[:"longitude"] %>]);
         var from = turf.point([latitude, longitude]);
         var options = {units: 'kilometers'}; 
         var distance = turf.distance(from, to, options);
 
-        L.marker([<%= datum[:"latitude"] %>,<%= datum[:"longitude"] %>]).addTo(map)
+        L.marker([<%= datum[:"latitude"] %>,<%= datum[:"longitude"] %>]
+            , {icon: L.AwesomeMarkers.icon(icoOptions)}).addTo(map)
         .bindPopup('<%= datum[:"name"] %><p>現在位置からの距離：'+ Math.round(distance*1000) + 'm</p>')
 
         if (minDistance === 0 || minDistance > distance) {
@@ -85,12 +118,14 @@ data = [
 
         <% end %>
         L.Routing.control({
+            router: L.Routing.mapbox('pk.eyJ1IjoicmlrbzAwMDAiLCJhIjoiY2pzaW1ra3U4MTN5NTN5dDdxYmpxeTQ2eSJ9.lX6Rl9HhZGeIXGFdOzonsA'),
             waypoints: [
                 L.latLng(latitude, longitude),
                 L.latLng(nLatitude, nLongitude)
             ]}).addTo(map);
         
-       L.marker([nLatitude, nLongitude]).addTo(map)
+        L.marker([nLatitude, nLongitude]
+        , {icon: L.AwesomeMarkers.icon(icoOptions)}).addTo(map)
         .bindPopup(nName +'<p>現在位置からの距離：'+ Math.round(minDistance*1000) + 'm</p>')
 
 

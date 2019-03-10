@@ -1,3 +1,4 @@
+<!--
 <%
 latitude     = 34.685067
 longitude    = 135.199281
@@ -17,6 +18,26 @@ data = [
     %{name: "公衆トイレ", longitude: 135.1804818, latitude: 34.697545}
 ]
 %>
+-->
+<%
+latitude     = 35.6646695
+longitude    = 139.7378019
+locationName = "住友不動産六本木グランドタワー"
+%>
+<%
+data = [
+   %{name: "多機能トイレ", longitude: 139.7374135, latitude: 35.6709449},
+   %{name: "多機能トイレ", longitude: 139.731443, latitude: 35.662836},
+   %{name: "公衆トイレ", longitude: 139.7387429, latitude: 35.6627215},
+   %{name: "多機能トイレ", longitude: 139.746786, latitude: 35.664528},
+   %{name: "多機能トイレ", longitude: 139.744042, latitude: 35.661324},
+   %{name: "六本木西公園内公衆トイレ", longitude: 139.7297529, latitude: 35.6632653},
+   %{name: "多機能トイレ", longitude: 139.745408, latitude: 35.658704},
+   %{name: "赤坂6丁目のトイレ", longitude: 139.7364737, latitude: 35.6678945},
+   %{name: "公衆トイレ", longitude: 139.7473614, latitude: 35.6598267},
+   %{name: "多機能トイレ", longitude: 139.74435, latitude: 35.666961}
+]
+%>
 
 <div id="map"></div>
 <div id="out"></div>
@@ -28,8 +49,10 @@ data = [
     
  
     function success(position) {
-        var latitude  = position.coords.latitude;
-        var longitude = position.coords.longitude;
+        // var latitude  = position.coords.latitude;
+        // var longitude = position.coords.longitude;
+        var latitude =  <%= latitude %>;
+        var longitude = <%= longitude %>;
 
         var map = L.map('map').setView([latitude, longitude], 13);
         // Icon
@@ -52,14 +75,16 @@ data = [
         }).addTo(map);
         // geeの出力を読み込む
         //L.tileLayer('https://storage.googleapis.com/testgeomap/geomap/{z}/{x}/{y}', {
-        L.tileLayer('https://storage.googleapis.com/testgeomap/night_201805/{z}/{x}/{y}', {
-            opacity: 0.5,
+        //L.tileLayer('https://storage.googleapis.com/testgeomap/night_201805/{z}/{x}/{y}', {
+        L.tileLayer('https://storage.googleapis.com/testgeomap/tokyo_night_201805_opacity06_max100/{z}/{x}/{y}', {
+            opacity: 0.6,
             maxZoom: 18,
             id: 'mytie'
         }).addTo(map);
         // 現在位置のピンを置く
         //L.marker([latitude, longitude],{icon: icon_hospital}).addTo(map)
-        L.marker([latitude, longitude]).addTo(map)
+        L.circleMarker([latitude, longitude],
+        {radius: 10,color: 'red',fillColor: 'red',opacity: 1,fillOpacity: 0.7}).addTo(map)
         .bindPopup('現在位置')
         .openPopup();
 
@@ -68,13 +93,21 @@ data = [
         var nLongitude = 0;
         var nName = "";
 
+        var icoOptions = {
+            prefix: 'fa'
+            ,icon: 'restroom'
+            ,markerColor: 'red'
+            ,iconColor: 'white'
+        };
+
         <%= for datum <- data do %>
         var to =  turf.point([<%= datum[:"latitude"] %>,<%= datum[:"longitude"] %>]);
         var from = turf.point([latitude, longitude]);
         var options = {units: 'kilometers'}; 
         var distance = turf.distance(from, to, options);
 
-        L.marker([<%= datum[:"latitude"] %>,<%= datum[:"longitude"] %>]).addTo(map)
+        L.marker([<%= datum[:"latitude"] %>,<%= datum[:"longitude"] %>]
+            , {icon: L.AwesomeMarkers.icon(icoOptions)}).addTo(map)
         .bindPopup('<%= datum[:"name"] %><p>現在位置からの距離：'+ Math.round(distance*1000) + 'm</p>')
 
         if (minDistance === 0 || minDistance > distance) {
@@ -86,12 +119,14 @@ data = [
 
         <% end %>
         L.Routing.control({
+            router: L.Routing.mapbox('pk.eyJ1IjoicmlrbzAwMDAiLCJhIjoiY2pzaW1ra3U4MTN5NTN5dDdxYmpxeTQ2eSJ9.lX6Rl9HhZGeIXGFdOzonsA'),
             waypoints: [
                 L.latLng(latitude, longitude),
                 L.latLng(nLatitude, nLongitude)
             ]}).addTo(map);
 
-        L.marker([nLatitude, nLongitude]).addTo(map)
+        L.marker([nLatitude, nLongitude]
+        , {icon: L.AwesomeMarkers.icon(icoOptions)}).addTo(map)
         .bindPopup(nName +'<p>現在位置からの距離：'+ Math.round(minDistance*1000) + 'm</p>')
 
     }

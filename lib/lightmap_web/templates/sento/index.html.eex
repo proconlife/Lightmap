@@ -1,3 +1,4 @@
+<!--
 <%
 latitude     = 34.685067
 longitude    = 135.199281
@@ -17,6 +18,26 @@ data = [
     %{name: "（有）富清観光", longitude: 135.169983, latitude: 34.680231}
 ]
 %>
+-->
+<%
+latitude     = 35.6646695
+longitude    = 139.7378019
+locationName = "住友不動産六本木グランドタワー"
+%>
+<%
+data = [
+   %{name: "港区立公衆浴場 ふれあいの湯", longitude: 139.752741, latitude: 35.653063},
+   %{name: "南青山 清水湯", longitude: 139.714009, latitude: 35.666043},
+   %{name: "金春湯", longitude: 139.7614424, latitude: 35.6686254},
+   %{name: "麻布黒美水温泉 竹の湯", longitude: 139.7342565, latitude: 35.6514517},
+   %{name: "広尾湯", longitude: 139.7218274, latitude: 35.6506391},
+   %{name: "三越湯", longitude: 139.7242331, latitude: 35.6446703},
+   %{name: "バン・ドゥーシュ", longitude: 139.741872, latitude: 35.6834856},
+   %{name: "塩湯", longitude: 139.727343, latitude: 35.6873875},
+   %{name: "改良湯", longitude: 139.709492, latitude: 35.6531702},
+   %{name: "クライオサウナ", longitude: 139.7342238, latitude: 35.6563761}
+]
+%>
 
 <!-- ☆明るさカウントブロックデータ -->
 <%
@@ -33,7 +54,7 @@ blocklist = [
 ]
 %>
 
-<div id="map"></div>
+<div id="map" style="position:absolute;top:0;left:0;right:0;bottom:0;"></div>
 <div id="out"></div>
 <script>
     var output = document.getElementById("out");
@@ -69,14 +90,16 @@ blocklist = [
         }).addTo(map);
         // geeの出力を読み込む
         //L.tileLayer('https://storage.googleapis.com/testgeomap/geomap/{z}/{x}/{y}', {
-        L.tileLayer('https://storage.googleapis.com/testgeomap/night_201805/{z}/{x}/{y}', {
-            opacity: 0.5,
-            maxZoom: 13,
+        //L.tileLayer('https://storage.googleapis.com/testgeomap/night_201805/{z}/{x}/{y}', {
+        L.tileLayer('https://storage.googleapis.com/testgeomap/tokyo_night_201805_opacity06_max100/{z}/{x}/{y}', {
+            opacity: 0.6,
+            maxZoom: 18,
             id: 'mytie'
         }).addTo(map);
         // 現在位置のピンを置く
         //L.marker([latitude, longitude],{icon: icon_hospital}).addTo(map)
-        L.marker([latitude, longitude]).addTo(map)
+        L.circleMarker([latitude, longitude],
+        {radius: 10,color: 'red',fillColor: 'red',opacity: 1,fillOpacity: 0.7}).addTo(map)
         .bindPopup('現在位置')
         .openPopup();
 
@@ -97,6 +120,13 @@ blocklist = [
 
         <% end %>
 
+        var icoOptions = {
+            prefix: 'fa'
+            ,icon: 'hot-tub '
+            ,markerColor: 'red'
+            ,iconColor: 'white'
+        };
+
         <%= for datum <- data do %>
         // 地点情報のピン
         var to =  turf.point([<%= datum[:"latitude"] %>,<%= datum[:"longitude"] %>]);
@@ -104,7 +134,8 @@ blocklist = [
         var options = {units: 'kilometers'}; 
         var distance = turf.distance(from, to, options);
 
-        L.marker([<%= datum[:"latitude"] %>,<%= datum[:"longitude"] %>]).addTo(map)
+        L.marker([<%= datum[:"latitude"] %>,<%= datum[:"longitude"] %>]
+            , {icon: L.AwesomeMarkers.icon(icoOptions)}).addTo(map)
         .bindPopup('<%= datum[:"name"] %><p>現在位置からの距離：'+ Math.round(distance*1000) + 'm</p>')
 
         // ☆明るさカウント=0の場所かどうか
@@ -131,12 +162,21 @@ blocklist = [
         var control = L.Routing.control({
             waypoints: [
                 L.latLng(latitude, longitude),
-                L.latLng(34.695638, 135.195219),    // ☆経由地を追加
+//                L.latLng(34.695638, 135.195219),    // ☆経由地を追加
                 L.latLng(nLatitude, nLongitude)
-            ]}).addTo(map);
+            ]});
+
+        L.Routing.control({
+            waypoints: [
+                L.latLng(latitude, longitude),
+                L.latLng(nLatitude, nLongitude)],
+            router: L.Routing.mapbox('pk.eyJ1IjoicmlrbzAwMDAiLCJhIjoiY2pzaW1ra3U4MTN5NTN5dDdxYmpxeTQ2eSJ9.lX6Rl9HhZGeIXGFdOzonsA'),
+ //           plan: rPlan
+            }).addTo(map);
         // L.Routing.errorControl(control).addTo(map);
             
-        L.marker([nLatitude, nLongitude]).addTo(map)
+        L.marker([nLatitude, nLongitude]
+        , {icon: L.AwesomeMarkers.icon(icoOptions)}).addTo(map)
         .bindPopup(nName +'<p>現在位置からの距離：'+ Math.round(minDistance*1000) + 'm</p>')
     }
 
