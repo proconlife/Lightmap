@@ -1,10 +1,10 @@
 <%
-latitude     = 34.685067
-longitude    = 135.199281
-locationName = "KIITO"
+latitude     = 35.6646695
+longitude    = 139.7378019
+locationName = "住友不動産六本木グランドタワー"
 
 
-# jsonを読み込む。リストの最初が左下座標、最後が右上座標。
+# jsonを読み込む。リストの最初が左上座標、最後が右下座標。
 # data = [
 #  [135.1083339342, 34.79166694500001, 4],
 #  [135.11250060089998, 34.79166694500001, 4],
@@ -13,7 +13,7 @@ locationName = "KIITO"
 #  [135.11250060089998, 34.78750027830001, ...],
 #  ...
 # ]
-light_data            = Jason.decode!(elem(File.read("assets/result.json"),1))
+light_data            = Jason.decode!(elem(File.read("assets/tokyo.json"),1))
 [min_lon, max_lat, _] = Enum.at(light_data,0)
 [max_lon, min_lat, _] = List.last(light_data)
 num_of_lon_area = length(Enum.filter(light_data, &Enum.at(&1,1) == min_lat))
@@ -25,16 +25,16 @@ rlon = dlon/2
 rlat = dlat/2
 
 data = [
-    %{name: "二宮温泉", longitude: 135.1958495, latitude: 34.6982648},
-    %{name: "HATなぎさの湯", longitude: 135.2132588, latitude: 34.6957018},
-    %{name: "つかさ湯", longitude: 135.180154, latitude: 34.686355},
-    %{name: "兵庫県公衆浴場業生活衛生同業組合", longitude: 135.178596, latitude: 34.688325},
-    %{name: "相生湯", longitude: 135.1755739, latitude: 34.6931657},
-    %{name: "ラドン温泉たちばな湯", longitude: 135.170616, latitude: 34.682589},
-    %{name: "割塚温泉", longitude: 135.2105256, latitude: 34.7052324},
-    %{name: "銭湯朝日湯", longitude: 135.2021821, latitude: 34.7047818},
-    %{name: "みなと湯", longitude: 135.174535, latitude: 34.67572},
-    %{name: "（有）富清観光", longitude: 135.169983, latitude: 34.680231}
+   %{name: "港区立公衆浴場 ふれあいの湯", longitude: 139.752741, latitude: 35.653063},
+   %{name: "南青山 清水湯", longitude: 139.714009, latitude: 35.666043},
+   %{name: "金春湯", longitude: 139.7614424, latitude: 35.6686254},
+   %{name: "麻布黒美水温泉 竹の湯", longitude: 139.7342565, latitude: 35.6514517},
+   %{name: "広尾湯", longitude: 139.7218274, latitude: 35.6506391},
+   %{name: "三越湯", longitude: 139.7242331, latitude: 35.6446703},
+   %{name: "バン・ドゥーシュ", longitude: 139.741872, latitude: 35.6834856},
+   %{name: "塩湯", longitude: 139.727343, latitude: 35.6873875},
+   %{name: "改良湯", longitude: 139.709492, latitude: 35.6531702},
+   %{name: "クライオサウナ", longitude: 139.7342238, latitude: 35.6563761}
 ]
 
 # 明るさカウントブロックデータ
@@ -78,8 +78,9 @@ end)
             accessToken: 'pk.eyJ1IjoicHJvY29ubGlmZSIsImEiOiJjanM4YjI4aTAxNW4zNGFtczR1ajdrbzlvIn0.81axTvh8oPJhrFYDZhuCzA'
         }).addTo(map);
         // geeの出力を読み込む
-        L.tileLayer('https://storage.googleapis.com/testgeomap/night_201805/{z}/{x}/{y}', {
-            opacity: 0.5,
+        //L.tileLayer('https://storage.googleapis.com/testgeomap/night_201805/{z}/{x}/{y}', {
+        L.tileLayer('https://storage.googleapis.com/testgeomap/tokyo_night_thresh70/{z}/{x}/{y}', {
+            opacity: 0.6,
             maxZoom: 13,
             id: 'mytie'
         }).addTo(map);
@@ -92,12 +93,12 @@ end)
         // ☆ブロック情報の可視化
         <%= for block_ <- Enum.with_index(blocklist, 1) do %>
         <% block = elem(block_,0)%>
-        L.polygon([
-            [<%= block[:minlatitude] %>, <%= block[:minlongitude] %>],
-            [<%= block[:minlatitude] %>, <%= block[:maxlongitude] %>],
-            [<%= block[:maxlatitude] %>, <%= block[:maxlongitude] %>],
-            [<%= block[:maxlatitude] %>, <%= block[:minlongitude] %>]
-        ]).addTo(map);
+        //L.polygon([
+        //    [<%= block[:minlatitude] %>, <%= block[:minlongitude] %>],
+        //    [<%= block[:minlatitude] %>, <%= block[:maxlongitude] %>],
+        //    [<%= block[:maxlatitude] %>, <%= block[:maxlongitude] %>],
+        //    [<%= block[:maxlatitude] %>, <%= block[:minlongitude] %>]
+        //]).addTo(map);
         //L.marker([<%= block[:latitude] %>, <%= block[:longitude] %>]).addTo(map).bindPopup('<%= elem(block_,1)%><p><%= block[:count] %></p>')
         <% end %>
 
@@ -108,8 +109,11 @@ end)
         var options = {units: 'kilometers'}; 
         var distance = turf.distance(from, to, options);
 
+        var num = <%= trunc((max_lat-datum[:"latitude"])/dlat) * num_of_lon_area + trunc((datum[:"longitude"]-min_lon)/dlon) + 1 %>;
+
         //L.marker([<%= datum[:"latitude"] %>,<%= datum[:"longitude"] %>]).addTo(map)
-        //.bindPopup('<%= datum[:"name"] %><p>現在位置からの距離：'+ Math.round(distance*1000) + 'm</p>')
+        //.bindPopup('<%= datum[:"name"] %><p>現在位置からの距離：'+ Math.round(distance*1000) + 'm<br>'+ num +'</p>')
+
         <% end %>
 
         // Dijkstra
@@ -148,18 +152,10 @@ end)
 
             <%= for block <- Enum.with_index(blocklist, 1) do %>
             <%= unless Enum.member?(edge_index, elem(block,1)) do %>
-            if ( <%= elem(block,0)[:longitude] %> <= longitude ) {
-                node<%= elem(block,1)+1 %>.addNode(node<%= elem(block,1) %>, 255 / node<%= elem(block,1) %>.light)
-            }
-            if ( <%= elem(block,0)[:longitude] %> >= longitude ) {
-                node<%= elem(block,1)-1 %>.addNode(node<%= elem(block,1) %>, 255 / node<%= elem(block,1) %>.light)
-            }
-            if ( <%= elem(block,0)[:latitude] %> >= latitude ) {
-                node<%= elem(block,1)+num_of_lon_area %>.addNode(node<%= elem(block,1) %>, 255 / node<%= elem(block,1) %>.light)
-            }
-            if ( <%= elem(block,0)[:latitude] %> <= latitude ) {
-                node<%= elem(block,1)-num_of_lon_area %>.addNode(node<%= elem(block,1) %>, 255 / node<%= elem(block,1) %>.light)
-            }
+            node<%= elem(block,1)+1 %>.addNode(node<%= elem(block,1) %>, 255 / (node<%= elem(block,1) %>.light * 10 + 1))
+            node<%= elem(block,1)-1 %>.addNode(node<%= elem(block,1) %>, 255 / (node<%= elem(block,1) %>.light * 10 + 1))
+            node<%= elem(block,1)+num_of_lon_area %>.addNode(node<%= elem(block,1) %>, 255 / (node<%= elem(block,1) %>.light * 10 + 1))
+            node<%= elem(block,1)-num_of_lon_area %>.addNode(node<%= elem(block,1) %>, 255 / (node<%= elem(block,1) %>.light * 10 + 1))
             <% end %>
             <% end %>
 
@@ -175,7 +171,7 @@ end)
             var nodes = createNodes();
             // start node is first node
 
-            nodes[1218].cost = 0;
+            nodes[1127].cost = 0;
 
             while (true) {
                 var processNode = null;
@@ -218,49 +214,32 @@ end)
                 }
             }
 
-            console.log('Has been done to search path.');
-            console.log(nodes);
-
-            var goalNode = nodes[1257];
-            console.log('Shoten cost is ' + goalNode.cost);
-
-            console.log('Shoten path');
-
-            console.log('=====================');
-            var path = 'Goal -> ';
+            var goalNode    = nodes[1117];
+            var path        = 'Goal -> ';
             var currentNode = goalNode;
             var waypoint    = [];
+
             while(true) {
                 var nextNode = currentNode.previousNode;
                 if (!nextNode) {
                     path += ' Start';
+                    waypoint.push(L.latLng(latitude, longitude));
                     break;
                 }
                 
-                path += nextNode.id + ' -> ';
+                if ( nextNode.light ) {
+                    path += nextNode.id + ' -> ';
+                    waypoint.push(L.latLng(nextNode.latitude, nextNode.longitude));
+                }
                 currentNode = nextNode;
             }
 
             console.log(path);
-            console.log('=====================');
 
             L.Routing.control({
                     router: L.Routing.mapbox('pk.eyJ1IjoicHJvY29ubGlmZSIsImEiOiJjanM4YjI4aTAxNW4zNGFtczR1ajdrbzlvIn0.81axTvh8oPJhrFYDZhuCzA'),
-                    //serviceUrl: 'https://api.mapbox.com/directions/v5/mapbox/walking?access_token=pk.eyJ1IjoicHJvY29ubGlmZSIsImEiOiJjanM4YjI4aTAxNW4zNGFtczR1ajdrbzlvIn0.81axTvh8oPJhrFYDZhuCzA',
-                    waypoints: [
-                        L.latLng(latitude, longitude),
-                        //L.latLng(34.695638, 135.195219)//,    // ☆経由地を追加
-                        //L.latLng(nLatitude, nLongitude)
-                        L.latLng(<%= Enum.at(Enum.at(light_data,1218),1)%>, <%= Enum.at(Enum.at(light_data,1218),0)%>),
-                        L.latLng(<%= Enum.at(Enum.at(light_data,1217),1)%>, <%= Enum.at(Enum.at(light_data,1217),0)%>),
-                        L.latLng(<%= Enum.at(Enum.at(light_data,1216),1)%>, <%= Enum.at(Enum.at(light_data,1216),0)%>),
-                        L.latLng(<%= Enum.at(Enum.at(light_data,1215),1)%>, <%= Enum.at(Enum.at(light_data,1215),0)%>),
-                        L.latLng(<%= Enum.at(Enum.at(light_data,1214),1)%>, <%= Enum.at(Enum.at(light_data,1214),0)%>),
-                        L.latLng(<%= Enum.at(Enum.at(light_data,1213),1)%>, <%= Enum.at(Enum.at(light_data,1213),0)%>),
-                        L.latLng(<%= Enum.at(Enum.at(light_data,1259),1)%>, <%= Enum.at(Enum.at(light_data,1259),0)%>),
-                        L.latLng(<%= Enum.at(Enum.at(light_data,1258),1)%>, <%= Enum.at(Enum.at(light_data,1258),0)%>),
-                        L.latLng(<%= Enum.at(Enum.at(light_data,1257),1)%>, <%= Enum.at(Enum.at(light_data,1257),0)%>) 
-                    ]}).addTo(map);
+                    waypoints: waypoint.reverse()
+            }).addTo(map);
         }
 
         // Start this program.
