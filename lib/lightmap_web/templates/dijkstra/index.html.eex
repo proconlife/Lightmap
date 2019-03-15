@@ -24,17 +24,19 @@ dlat = (max_lat - min_lat) / (num_of_lat_area - 1)
 rlon = dlon/2
 rlat = dlat/2
 
+
 data = [
-   %{name: "港区立公衆浴場 ふれあいの湯", longitude: 139.752741, latitude: 35.653063},
-   %{name: "南青山 清水湯", longitude: 139.714009, latitude: 35.666043},
-   %{name: "金春湯", longitude: 139.7614424, latitude: 35.6686254},
-   %{name: "麻布黒美水温泉 竹の湯", longitude: 139.7342565, latitude: 35.6514517},
-   %{name: "広尾湯", longitude: 139.7218274, latitude: 35.6506391},
-   %{name: "三越湯", longitude: 139.7242331, latitude: 35.6446703},
-   %{name: "バン・ドゥーシュ", longitude: 139.741872, latitude: 35.6834856},
-   %{name: "塩湯", longitude: 139.727343, latitude: 35.6873875},
-   %{name: "改良湯", longitude: 139.709492, latitude: 35.6531702},
-   %{name: "クライオサウナ", longitude: 139.7342238, latitude: 35.6563761}
+#   %{name: "港区立公衆浴場 ふれあいの湯", longitude: 139.752741, latitude: 35.653063},
+#   %{name: "南青山 清水湯", longitude: 139.714009, latitude: 35.666043},
+#   %{name: "金春湯", longitude: 139.7614424, latitude: 35.6686254},
+#   %{name: "麻布黒美水温泉 竹の湯", longitude: 139.7342565, latitude: 35.6514517},
+#   %{name: "広尾湯", longitude: 139.7218274, latitude: 35.6506391},
+#   %{name: "三越湯", longitude: 139.7242331, latitude: 35.6446703},
+#   %{name: "バン・ドゥーシュ", longitude: 139.741872, latitude: 35.6834856},
+#   %{name: "塩湯", longitude: 139.727343, latitude: 35.6873875},
+#   %{name: "改良湯", longitude: 139.709492, latitude: 35.6531702},
+#   %{name: "クライオサウナ", longitude: 139.7342238, latitude: 35.6563761}
+    %{name: "明治神宮", longitude: 139.697026, latitude: 35.670398}
 ]
 
 # 明るさカウントブロックデータ
@@ -93,12 +95,12 @@ end)
         // ☆ブロック情報の可視化
         <%= for block_ <- Enum.with_index(blocklist, 1) do %>
         <% block = elem(block_,0)%>
-        //L.polygon([
-        //    [<%= block[:minlatitude] %>, <%= block[:minlongitude] %>],
-        //    [<%= block[:minlatitude] %>, <%= block[:maxlongitude] %>],
-        //    [<%= block[:maxlatitude] %>, <%= block[:maxlongitude] %>],
-        //    [<%= block[:maxlatitude] %>, <%= block[:minlongitude] %>]
-        //]).addTo(map);
+        /*L.polygon([
+            [<%= block[:minlatitude] %>, <%= block[:minlongitude] %>],
+            [<%= block[:minlatitude] %>, <%= block[:maxlongitude] %>],
+            [<%= block[:maxlatitude] %>, <%= block[:maxlongitude] %>],
+            [<%= block[:maxlatitude] %>, <%= block[:minlongitude] %>]
+        ]).addTo(map);*/
         //L.marker([<%= block[:latitude] %>, <%= block[:longitude] %>]).addTo(map).bindPopup('<%= elem(block_,1)%><p><%= block[:count] %></p>')
         <% end %>
 
@@ -109,10 +111,10 @@ end)
         var options = {units: 'kilometers'}; 
         var distance = turf.distance(from, to, options);
 
-        var num = <%= trunc((max_lat-datum[:"latitude"])/dlat) * num_of_lon_area + trunc((datum[:"longitude"]-min_lon)/dlon) + 1 %>;
+        var num = <%= trunc((max_lat-datum[:"latitude"])/dlat+1) * num_of_lon_area + trunc((datum[:"longitude"]-min_lon)/dlon) + 1 %>;
 
-        //L.marker([<%= datum[:"latitude"] %>,<%= datum[:"longitude"] %>]).addTo(map)
-        //.bindPopup('<%= datum[:"name"] %><p>現在位置からの距離：'+ Math.round(distance*1000) + 'm<br>'+ num +'</p>')
+        L.marker([<%= datum[:"latitude"] %>,<%= datum[:"longitude"] %>]).addTo(map)
+        .bindPopup('<%= datum[:"name"] %><p>現在位置からの距離：'+ Math.round(distance*1000) + 'm<br>'+ num +'</p>')
 
         <% end %>
 
@@ -159,6 +161,10 @@ end)
             <% end %>
             <% end %>
 
+            <%= for datum <- data do %>
+            node<%= trunc((max_lat-datum[:"latitude"])/dlat) * num_of_lon_area + trunc((datum[:"longitude"]-min_lon)/dlon) + 1 %>.facility.push({lat:<%= datum[:"latitude"] %>,lon:<%= datum[:"longitude"] %>, name:"<%= datum[:"name"]%>"});
+            <% end %>
+
             return [
                 <%= for area_index <- Enum.map(1..num_of_lat_area*num_of_lon_area-1, fn x -> x end) do %>
                 node<%= area_index %>,
@@ -171,7 +177,7 @@ end)
             var nodes = createNodes();
             // start node is first node
 
-            nodes[1127].cost = 0;
+            nodes[parseInt((<%=max_lat%>-latitude)/<%=dlat%>) * <%=num_of_lon_area%> + parseInt((longitude-<%=min_lon%>)/<%=dlon%>)].cost = 0;
 
             while (true) {
                 var processNode = null;
@@ -214,10 +220,27 @@ end)
                 }
             }
 
+            var goalindex = 100;
+            console.log(nodes[goalindex].cost);
+            <%= for datum <- data do %>
+            <% nodes_index = trunc((max_lat-datum[:"latitude"])/dlat) * num_of_lon_area + trunc((datum[:"longitude"]-min_lon)/dlon)%>
+            if (nodes[<%= nodes_index%>].light) {
+                if (nodes[goalindex].cost > nodes[<%= nodes_index%>].cost) {
+                    goalindex = <%= nodes_index%>;
+                }
+            console.log(nodes[<%= nodes_index%>].cost);
+            }
+            <% end %>
+
+            console.log(goalindex);
+
+            //var goalNode    = nodes[goalindex]; // edited 1117
             var goalNode    = nodes[1117];
             var path        = 'Goal -> ';
             var currentNode = goalNode;
             var waypoint    = [];
+
+            //waypoint.push(L.latLng(nodes[goalindex].latitude,nodes[goalindex].longitude));
 
             while(true) {
                 var nextNode = currentNode.previousNode;
@@ -227,14 +250,16 @@ end)
                     break;
                 }
                 
-                if ( nextNode.light ) {
+                //if ( nextNode.light ) {
                     path += nextNode.id + ' -> ';
                     waypoint.push(L.latLng(nextNode.latitude, nextNode.longitude));
-                }
+                //}
                 currentNode = nextNode;
             }
 
             console.log(path);
+
+            //waypoint    = [L.latLng(latitude, longitude), L.latLng(35.670398,139.697026)];
 
             L.Routing.control({
                     router: L.Routing.mapbox('pk.eyJ1IjoicHJvY29ubGlmZSIsImEiOiJjanM4YjI4aTAxNW4zNGFtczR1ajdrbzlvIn0.81axTvh8oPJhrFYDZhuCzA'),

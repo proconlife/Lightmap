@@ -16728,7 +16728,7 @@
                 minimizedClassName: '',
                 itineraryClassName: '',
                 totalDistanceRoundingSensitivity: -1,
-                show: true,
+                show: true, // true
                 collapsible: undefined,
                 collapseBtn: function(itinerary) {
                     var collapseBtn = L.DomUtil.create('span', itinerary.options.collapseBtnClass);
@@ -18344,13 +18344,13 @@
                     this.spliceWaypoints(this._waypoints.length, 0, null);
                 }
     
-                this._updateMarkers();
+                //this._updateMarkers(); edited
                 this._fireChanged.apply(this, args);
             },
     
             onAdd: function(map) {
                 this._map = map;
-                this._updateMarkers();
+                //this._updateMarkers(); edited
             },
     
             onRemove: function() {
